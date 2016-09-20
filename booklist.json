@@ -1,0 +1,42 @@
+
+ {"price": 28, "isbn": "0816081530", "name": "sci", "author": ["Pamela Fehl"]}
+ {"price": 10, "isbn": "0439017092", "name": "woo sci", "author": ["Tavener, Jenni"]}
+ {"price": 13, "isbn": "0153176490", "name": "physics", "author": []}
+ {"price": 12, "isbn": "0022870407", "name": "Chem", "author": []}
+ {"price": 27, "isbn": "8131906809", "name": "Bio", "author": ["Pawanpreet Kaur"]}
+ {"price": 13, "isbn": "9999114997", "name": "Demo", "author": ["Creary, Carole", "Wilson, Gay", "Burrows, Ray", "Burrows, Corinne"]}
+ {"price": 11, "isbn": "9999115004", "name": "Lition", "author": ["Creary, Carole", "Wilson, Gay", "Curl, Beverly A."]}
+ {"price": 12, "isbn": "9999115012", "name": "Teaching", "author": ["Creary, Carole", "Wilson, Gay", "Alexander, Sally J.", "Andy Miles"]}
+ {"price": 11, "isbn": "9999115047", "name": "YOLO", "author": ["Creary, Carole", "Wilson, Gay"]}
+ {"price": 23, "isbn": "0471756938", "name": "Sciences", "author": ["Trefil, James S."]}
+ {"price": 27, "isbn": "2550396650", "name": "Arts", "author": []}
+ {"price": 19, "isbn": "1405322438", "name": "Painting", "author": []}
+ {"price": 26, "isbn": "1438501749", "name": "Drawing", "author": ["Bell, Clive"]}
+ {"price": 20, "isbn": "1407617478", "name": "Colab", "author": ["Bell, Clive"]}
+ {"price": 15, "isbn": "0590534165", "name": "Gecko", "author": ["Stephen Bugg"]}
+ {"price": 21, "isbn": "142196399X", "name": "Mondrian", "author": ["Bell, Clive"]}
+ {"price": 17, "isbn": "1856131742", "name": "Limited", "author": []}
+ {"price": 28, "isbn": "0665769504", "name": "Art", "author": []}
+ {"price": 23, "isbn": "9500204428", "name": "ARTE", "author": ["CUMMING ROBERT"]}
+ {"price": 25, "isbn": "1594204861", "name": "Artful", "author": ["Smith, Ali"]}
+ {"price": 10, "isbn": "0536918945", "name": "Programming", "author": []}
+ {"price": 17, "isbn": "088309102X", "name": "Kindergarten program", "author": ["Lucas, Virginia H.", "Humphrey, Jack"]}
+ {"price": 28, "isbn": "0415451884", "name": "Programming. architecture", "author": ["Coates, Paul"]}
+ {"price": 14, "isbn": "0470478969", "name": "Mac Programming", "author": ["Aaron Vegh"]}
+ {"price": 17, "isbn": "0782140602", "name": "Jython Programming", "author": []}
+ {"price": 22, "isbn": "0768662273", "name": "Cocoa programming", "author": ["Anguish, Scott", "Buck, Erik M.", "Yacktman, Donald A."]}
+ {"price": 15, "isbn": "0715617346", "name": "BBC programs", "author": ["Carl Graham", "Hampshire, Nick"]}
+ {"price": 25, "isbn": "032459951X", "name": "Java Programming", "author": ["Farrell, Joyce"]}
+ {"price": 11, "isbn": "0089606140", "name": "Program improvement", "author": []}
+ {"price": 13, "isbn": "1565921852", "name": "Java Programming", "author": []}
+ {"price": 12, "isbn": "0869223712", "name": "Education", "author": ["Bond-Stewart, Kathy"]}
+ {"price": 10, "isbn": "0245525556", "name": "Teaching", "author": ["OConnor, Edmund"]}
+ {"price": 27, "isbn": "0471238120", "name": "Learning", "author": []}
+ {"price": 12, "isbn": "0737742089", "name": "Early Childhood Education", "author": ["Haugen, David M.", "Susan Musser"]}
+ {"price": 25, "isbn": "0737742097", "name": "Thinking Hard", "author": ["Haugen, David M.", "Susan Musser"]}
+ {"price": 13, "isbn": "0737738057", "name": "Hard Thinking", "author": ["Winters, Robert W."]}
+ {"price": 19, "isbn": "1175922048", "name": "Wonder", "author": ["White, Ellen Emerson"]}
+ {"price": 13, "isbn": "1171610351", "name": "Exploration of the Poles", "author": ["White, Ellen Emerson"]}
+ {"price": 16, "isbn": "0716522128", "name": "What does the X say?", "author": ["Fox, Celina"]}
+ {"price": 20, "isbn": "0816300429", "name": "Education", "author": ["White, Ellen Emerson"]}
+
