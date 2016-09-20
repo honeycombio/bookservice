@@ -8,7 +8,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
+	"time"
 
 	"goji.io"
 	"goji.io/pat"
@@ -18,9 +20,22 @@ import (
 )
 
 const (
-	database   = "bookservice"
-	collection = "books"
+	DB   = "bookservice"
+	COLL = "books"
+
+	QNONE = iota
+	QPOOR
+	QMED
+	QGOOD
+	QHEADER = "X-Result-Quality"
 )
+
+var qStrings = [4]string{
+	"Empty",
+	"Poor",
+	"Medium",
+	"Good",
+}
 
 func ErrorWithJSON(w http.ResponseWriter, message string, code int) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -29,16 +44,18 @@ func ErrorWithJSON(w http.ResponseWriter, message string, code int) {
 }
 
 func ResponseWithJSON(w http.ResponseWriter, json []byte, code int) {
+	delay := rand.NormFloat64()*20 + 100
+	time.Sleep(time.Duration(int(delay)) * time.Millisecond)
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
 	w.Write(json)
 }
 
 type Book struct {
-	ISBN    string   `json:"isbn"`
-	Title   string   `json:"name"`
-	Authors []string `json:"author"`
-	Price   string   `json:"price"`
+	ISBN   string   `json:"isbn"`
+	Name   string   `json:"name"`
+	Author []string `json:"author"`
+	Price  int      `json:"price"`
 }
 
 func main() {
@@ -51,12 +68,11 @@ func main() {
 	ensureIndex(session)
 
 	mux := goji.NewMux()
-	mux.HandleFuncC(pat.Get("/books"), bookRouter(session))
-	// mux.HandleFuncC(pat.Get("/books"), allBooks(session))
+	mux.HandleFuncC(pat.Get("/books"), getBooks(session))
 	mux.HandleFuncC(pat.Post("/books"), addBook(session))
-	mux.HandleFuncC(pat.Get("/books/:isbn"), bookByISBN(session))
-	mux.HandleFuncC(pat.Put("/books/:isbn"), updateBook(session))
-	mux.HandleFuncC(pat.Delete("/books/:isbn"), deleteBook(session))
+	mux.HandleFuncC(pat.Put("/books"), updateBook(session))
+	mux.HandleFuncC(pat.Delete("/books"), deleteBook(session))
+	mux.HandleFuncC(pat.Get("/isbns"), getISBNs(session))
 	http.ListenAndServe("localhost:8080", mux)
 }
 
@@ -64,7 +80,7 @@ func ensureIndex(s *mgo.Session) {
 	session := s.Copy()
 	defer session.Close()
 
-	c := session.DB(database).C(collection)
+	c := session.DB(DB).C(COLL)
 
 	index := mgo.Index{
 		Key:        []string{"isbn"},
@@ -79,7 +95,7 @@ func ensureIndex(s *mgo.Session) {
 	}
 }
 
-func bookRouter(s *mgo.Session) goji.HandlerFunc {
+func getBooks(s *mgo.Session) goji.HandlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		qs := r.URL.Query()
 		if len(qs) == 0 {
@@ -91,10 +107,13 @@ func bookRouter(s *mgo.Session) goji.HandlerFunc {
 }
 func allBooks(s *mgo.Session) goji.HandlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		delay := rand.NormFloat64()*10 + 50
+		time.Sleep(time.Duration(int(delay)) * time.Millisecond)
+
 		session := s.Copy()
 		defer session.Close()
 
-		c := session.DB(database).C(collection)
+		c := session.DB(DB).C(COLL)
 
 		var books []Book
 		err := c.Find(bson.M{}).All(&books)
@@ -103,7 +122,6 @@ func allBooks(s *mgo.Session) goji.HandlerFunc {
 			log.Println("Failed get all books: ", err)
 			return
 		}
-
 		respBody, err := json.MarshalIndent(books, "", "  ")
 		if err != nil {
 			log.Fatal(err)
@@ -115,6 +133,8 @@ func allBooks(s *mgo.Session) goji.HandlerFunc {
 
 func addBook(s *mgo.Session) goji.HandlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		delay := rand.NormFloat64()*20 + 100
+		time.Sleep(time.Duration(int(delay)) * time.Millisecond)
 		session := s.Copy()
 		defer session.Close()
 
@@ -126,7 +146,7 @@ func addBook(s *mgo.Session) goji.HandlerFunc {
 			return
 		}
 
-		c := session.DB(database).C(collection)
+		c := session.DB(DB).C(COLL)
 
 		err = c.Insert(book)
 		if err != nil {
@@ -154,7 +174,7 @@ func bookByISBN(s *mgo.Session) goji.HandlerFunc {
 		// isbn := pat.Param(ctx, "isbn")
 		isbn := r.URL.Query().Get("isbn")
 
-		c := session.DB(database).C(collection)
+		c := session.DB(DB).C(COLL)
 
 		var book Book
 		err := c.Find(bson.M{"isbn": isbn}).One(&book)
@@ -169,6 +189,20 @@ func bookByISBN(s *mgo.Session) goji.HandlerFunc {
 			return
 		}
 
+		// judge result quality
+		var quality int
+		if len(book.Author) != 0 {
+			quality++
+		}
+		if book.Name != "" {
+			quality++
+		}
+		if book.Price != 0 {
+			quality++
+		}
+
+		w.Header().Set(QHEADER, qStrings[quality])
+
 		respBody, err := json.MarshalIndent(book, "", "  ")
 		if err != nil {
 			log.Fatal(err)
@@ -180,10 +214,12 @@ func bookByISBN(s *mgo.Session) goji.HandlerFunc {
 
 func updateBook(s *mgo.Session) goji.HandlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		delay := rand.NormFloat64()*20 + 100
+		time.Sleep(time.Duration(int(delay)) * time.Millisecond)
 		session := s.Copy()
 		defer session.Close()
 
-		isbn := pat.Param(ctx, "isbn")
+		isbn := r.URL.Query().Get("isbn")
 
 		var book Book
 		decoder := json.NewDecoder(r.Body)
@@ -193,7 +229,7 @@ func updateBook(s *mgo.Session) goji.HandlerFunc {
 			return
 		}
 
-		c := session.DB(database).C(collection)
+		c := session.DB(DB).C(COLL)
 
 		err = c.Update(bson.M{"isbn": isbn}, &book)
 		if err != nil {
@@ -214,12 +250,14 @@ func updateBook(s *mgo.Session) goji.HandlerFunc {
 
 func deleteBook(s *mgo.Session) goji.HandlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		delay := rand.NormFloat64()*20 + 100
+		time.Sleep(time.Duration(int(delay)) * time.Millisecond)
 		session := s.Copy()
 		defer session.Close()
 
-		isbn := pat.Param(ctx, "isbn")
+		isbn := r.URL.Query().Get("isbn")
 
-		c := session.DB(database).C(collection)
+		c := session.DB(DB).C(COLL)
 
 		err := c.Remove(bson.M{"isbn": isbn})
 		if err != nil {
@@ -235,5 +273,32 @@ func deleteBook(s *mgo.Session) goji.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
+func getISBNs(s *mgo.Session) goji.HandlerFunc {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		session := s.Copy()
+		defer session.Close()
+
+		c := session.DB(DB).C(COLL)
+
+		var books []Book
+		err := c.Find(bson.M{}).All(&books)
+		if err != nil {
+			ErrorWithJSON(w, "Database error", http.StatusInternalServerError)
+			log.Println("Failed get all books: ", err)
+			return
+		}
+		isbns := make([]string, len(books))
+		for _, book := range books {
+			isbns = append(isbns, book.ISBN)
+		}
+		respBody, err := json.MarshalIndent(isbns, "", "  ")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		ResponseWithJSON(w, respBody, http.StatusOK)
 	}
 }
