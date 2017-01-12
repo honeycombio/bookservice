@@ -1,9 +1,1 @@
-
-Get the data like this:
-  curl -v http://isbndb.com/api/v2/json/JGBAAFCD/books\?q\=accounting > booklist.6
-
-Transform the data with prep_books.py
-
-Load the data in to mongo like this:
-  mongoimport --db bookservice --collection books --drop --file ./booklist.json
-
+Run `python prep_books.py` to download test data and import into mongo.

@@ -1,15 +1,16 @@
 import random
 import json
+import subprocess
+import requests
 
 # script to munge data from isdndb.com into the format used in this example
-# populate booklist.* with
-# curl -v http://isbndb.com/api/v2/json/JGBAAFCD/books\?q\=accounting > booklist.6
-
 books = []
-for blfid in range(1,6):
-    with open('booklist.{}'.format(blfid), 'r') as blf:
-        bl = json.load(blf)
-    for book in bl["data"]:
+for i in range(1, 7):
+    print 'Fetching page {} of book results'.format(i)
+    resp = requests.get("http://isbndb.com/api/v2/json/JGBAAFCD/books",
+                        params={'q': 'accounting', 'p': i}).json()
+
+    for book in resp['data']:
         nb = {
             "name": book["title"],
             "isbn": book["isbn10"],
@@ -17,3 +18,9 @@ for blfid in range(1,6):
             "price": random.randrange(10, 30),
         }
         books.append(nb)
+
+with open('booklist.json', 'w') as output:
+    json.dump(books, output)
+
+subprocess.check_call('mongoimport --db bookservice --collection books --drop '
+                      '--file ./booklist.json --jsonArray', shell=True)
