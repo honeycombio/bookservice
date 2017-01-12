@@ -16,6 +16,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -32,15 +33,22 @@ type Book struct {
 var httpClient *http.Client
 
 func main() {
+	var host string
+	var port int
+	flag.StringVar(&host, "host", "localhost", "server host")
+	flag.IntVar(&port, "port", 8080, "server port")
+	flag.Parse()
 	httpClient = &http.Client{}
-	isbns := getISBNList()
-	for _, isbn := range isbns {
-		getBook(isbn)
+	for {
+		isbns := getISBNList(host, port)
+		for _, isbn := range isbns {
+			getBook(host, port, isbn)
+		}
 	}
 }
 
-func getISBNList() []string {
-	resp, err := http.Get("http://localhost/isbns")
+func getISBNList(host string, port int) []string {
+	resp, err := http.Get(fmt.Sprintf("http://%s:%d/isbns", host, port))
 	if err != nil {
 		return nil
 	}
@@ -54,8 +62,8 @@ func getISBNList() []string {
 	return isbns
 }
 
-func getBook(isbn string) *Book {
-	resp, err := http.Get(fmt.Sprintf("http://localhost/books?isbn=%s", isbn))
+func getBook(host string, port int, isbn string) *Book {
+	resp, err := http.Get(fmt.Sprintf("http://%s:%d/books?isbn=%s", host, port, isbn))
 	if err != nil {
 		return nil
 	}

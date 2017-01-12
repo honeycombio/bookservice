@@ -291,7 +291,7 @@ func getISBNs(s *mgo.Session) HandleFunc {
 			log.Println("Failed get all books: ", err)
 			return
 		}
-		isbns := make([]string, len(books))
+		isbns := make([]string, 0)
 		for _, book := range books {
 			isbns = append(isbns, book.ISBN)
 		}
