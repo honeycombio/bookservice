@@ -1,0 +1,34 @@
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: bookservice-deployment
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: bookservice
+    spec:
+      containers:
+      - name: bookservice
+        image: emfree/bookservice:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        command: ["/go/bin/srv", "--mongo", "bookservice-mongodb"]
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bookservice
+  labels:
+    app: bookservice
+spec:
+  ports:
+  - name: bookservice
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: bookservice

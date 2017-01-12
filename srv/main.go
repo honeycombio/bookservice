@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"time"
 
+	flag "github.com/jessevdk/go-flags"
 	"goji.io"
 	"goji.io/pat"
 	"gopkg.in/mgo.v2"
@@ -59,8 +60,19 @@ type Book struct {
 	Price  int      `json:"price"`
 }
 
+type Options struct {
+	Mongo string `long:"mongo" default:"localhost"`
+}
+
 func main() {
-	session, err := mgo.Dial("localhost")
+	var options Options
+	flagParser := flag.NewParser(&options, flag.PrintErrors)
+	_, err := flagParser.Parse()
+	if err != nil {
+		panic(err)
+	}
+
+	session, err := mgo.Dial(options.Mongo)
 	if err != nil {
 		panic(err)
 	}
@@ -74,7 +86,7 @@ func main() {
 	mux.HandleFunc(pat.Put("/books"), updateBook(session))
 	mux.HandleFunc(pat.Delete("/books"), deleteBook(session))
 	mux.HandleFunc(pat.Get("/isbns"), getISBNs(session))
-	http.ListenAndServe("localhost:8080", mux)
+	http.ListenAndServe("0.0.0.0:8080", mux)
 }
 
 func ensureIndex(s *mgo.Session) {
