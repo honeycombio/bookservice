@@ -14,7 +14,6 @@ import (
 
 	"goji.io"
 	"goji.io/pat"
-	"golang.org/x/net/context"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -36,6 +35,8 @@ var qStrings = [4]string{
 	"Medium",
 	"Good",
 }
+
+type HandleFunc func(http.ResponseWriter, *http.Request)
 
 func ErrorWithJSON(w http.ResponseWriter, message string, code int) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -68,11 +69,11 @@ func main() {
 	ensureIndex(session)
 
 	mux := goji.NewMux()
-	mux.HandleFuncC(pat.Get("/books"), getBooks(session))
-	mux.HandleFuncC(pat.Post("/books"), addBook(session))
-	mux.HandleFuncC(pat.Put("/books"), updateBook(session))
-	mux.HandleFuncC(pat.Delete("/books"), deleteBook(session))
-	mux.HandleFuncC(pat.Get("/isbns"), getISBNs(session))
+	mux.HandleFunc(pat.Get("/books"), getBooks(session))
+	mux.HandleFunc(pat.Post("/books"), addBook(session))
+	mux.HandleFunc(pat.Put("/books"), updateBook(session))
+	mux.HandleFunc(pat.Delete("/books"), deleteBook(session))
+	mux.HandleFunc(pat.Get("/isbns"), getISBNs(session))
 	http.ListenAndServe("localhost:8080", mux)
 }
 
@@ -95,18 +96,18 @@ func ensureIndex(s *mgo.Session) {
 	}
 }
 
-func getBooks(s *mgo.Session) goji.HandlerFunc {
-	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func getBooks(s *mgo.Session) HandleFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		qs := r.URL.Query()
 		if len(qs) == 0 {
-			allBooks(s)(ctx, w, r)
+			allBooks(s)(w, r)
 			return
 		}
-		bookByISBN(s)(ctx, w, r)
+		bookByISBN(s)(w, r)
 	}
 }
-func allBooks(s *mgo.Session) goji.HandlerFunc {
-	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func allBooks(s *mgo.Session) HandleFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		delay := rand.NormFloat64()*10 + 50
 		time.Sleep(time.Duration(int(delay)) * time.Millisecond)
 
@@ -131,8 +132,8 @@ func allBooks(s *mgo.Session) goji.HandlerFunc {
 	}
 }
 
-func addBook(s *mgo.Session) goji.HandlerFunc {
-	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func addBook(s *mgo.Session) HandleFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		delay := rand.NormFloat64()*20 + 100
 		time.Sleep(time.Duration(int(delay)) * time.Millisecond)
 		session := s.Copy()
@@ -166,8 +167,8 @@ func addBook(s *mgo.Session) goji.HandlerFunc {
 	}
 }
 
-func bookByISBN(s *mgo.Session) goji.HandlerFunc {
-	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func bookByISBN(s *mgo.Session) HandleFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		session := s.Copy()
 		defer session.Close()
 
@@ -212,8 +213,8 @@ func bookByISBN(s *mgo.Session) goji.HandlerFunc {
 	}
 }
 
-func updateBook(s *mgo.Session) goji.HandlerFunc {
-	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func updateBook(s *mgo.Session) HandleFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		delay := rand.NormFloat64()*20 + 100
 		time.Sleep(time.Duration(int(delay)) * time.Millisecond)
 		session := s.Copy()
@@ -248,8 +249,8 @@ func updateBook(s *mgo.Session) goji.HandlerFunc {
 	}
 }
 
-func deleteBook(s *mgo.Session) goji.HandlerFunc {
-	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func deleteBook(s *mgo.Session) HandleFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		delay := rand.NormFloat64()*20 + 100
 		time.Sleep(time.Duration(int(delay)) * time.Millisecond)
 		session := s.Copy()
@@ -276,8 +277,8 @@ func deleteBook(s *mgo.Session) goji.HandlerFunc {
 	}
 }
 
-func getISBNs(s *mgo.Session) goji.HandlerFunc {
-	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func getISBNs(s *mgo.Session) HandleFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		session := s.Copy()
 		defer session.Close()
 
