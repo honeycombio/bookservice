@@ -10,10 +10,15 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"time"
 
+	"golang.org/x/net/context"
+
+	"github.com/Sirupsen/logrus"
 	flag "github.com/jessevdk/go-flags"
 	"goji.io"
+	"goji.io/middleware"
 	"goji.io/pat"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -45,8 +50,8 @@ func ErrorWithJSON(w http.ResponseWriter, message string, code int) {
 	fmt.Fprintf(w, "{message: %q}", message)
 }
 
-func ResponseWithJSON(w http.ResponseWriter, json []byte, code int) {
-	delay := rand.NormFloat64()*20 + 100
+func ResponseWithJSON(w http.ResponseWriter, json []byte, code int, lag float64) {
+	delay := rand.NormFloat64()*20 + 100 + lag
 	time.Sleep(time.Duration(int(delay)) * time.Millisecond)
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
@@ -80,7 +85,10 @@ func main() {
 	session.SetMode(mgo.Monotonic, true)
 	ensureIndex(session)
 
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+
 	mux := goji.NewMux()
+	mux.UseC(LogRequest)
 	mux.HandleFunc(pat.Get("/books"), getBooks(session))
 	mux.HandleFunc(pat.Post("/books"), addBook(session))
 	mux.HandleFunc(pat.Put("/books"), updateBook(session))
@@ -140,7 +148,12 @@ func allBooks(s *mgo.Session) HandleFunc {
 			log.Fatal(err)
 		}
 
-		ResponseWithJSON(w, respBody, http.StatusOK)
+		var lag float64
+		if os.Getenv("VERSION") == "2" {
+			lag += rand.NormFloat64()*30 + 40
+		}
+
+		ResponseWithJSON(w, respBody, http.StatusOK, lag)
 	}
 }
 
@@ -221,7 +234,7 @@ func bookByISBN(s *mgo.Session) HandleFunc {
 			log.Fatal(err)
 		}
 
-		ResponseWithJSON(w, respBody, http.StatusOK)
+		ResponseWithJSON(w, respBody, http.StatusOK, 0)
 	}
 }
 
@@ -312,6 +325,39 @@ func getISBNs(s *mgo.Session) HandleFunc {
 			log.Fatal(err)
 		}
 
-		ResponseWithJSON(w, respBody, http.StatusOK)
+		ResponseWithJSON(w, respBody, http.StatusOK, 0)
 	}
+}
+
+func requestFields(ctx context.Context, r *http.Request, elapsed int64) map[string]interface{} {
+	remoteAddr := r.Header.Get("X-Forwarded-For")
+	if remoteAddr == "" {
+		remoteAddr = r.RemoteAddr
+	}
+	fields := map[string]interface{}{
+		"method":         r.Method,
+		"request":        r.URL.RequestURI(),
+		"userAgent":      r.UserAgent(),
+		"remoteAddr":     remoteAddr,
+		"request_dur_ms": elapsed,
+	}
+
+	gojiPattern := middleware.Pattern(ctx)
+	if gojiPattern != nil {
+		// log our pattern
+		fields["gojiPattern"] = gojiPattern.(*pat.Pattern).String()
+	}
+
+	return fields
+}
+
+// Middleware: log all requests to the DEBUG log level
+func LogRequest(handler goji.Handler) goji.Handler {
+	return goji.HandlerFunc(func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		before := time.Now()
+		handler.ServeHTTPC(ctx, w, r)
+		elapsed := time.Now().Sub(before).Nanoseconds() / 1e6
+		logrus.WithFields(requestFields(ctx, r, elapsed)).Info("Handled request")
+
+	})
 }
