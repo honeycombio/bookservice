@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
       - name: bookservice
-        image: emfree/bookservice:latest
+        image: honeycombio/bookservice-demo:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

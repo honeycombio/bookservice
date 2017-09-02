@@ -1,5 +1,6 @@
-FROM golang
+FROM golang:1.8.3-jessie
 
+RUN apt-key update
 RUN apt-get update
 RUN apt-get install -y python wget libsasl2-dev
 WORKDIR /go/src/github.com/honeycombio/bookservice

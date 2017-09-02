@@ -10,7 +10,7 @@ spec:
     spec:
       containers:
       - name: bookservice
-        image: emfree/bookservice:latest
+        image: honeycombio/bookservice-demo:latest
         command: ["mongoimport", "--db", "bookservice", "--collection",
             "books", "--drop", "--file",
             "/go/src/github.com/honeycombio/bookservice/booklist.json",
