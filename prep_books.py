@@ -11,7 +11,7 @@ else:
 
 
 books = []
-for i in range(1, 7):
+for i in range(1, 100):
     print 'Fetching page {} of book results'.format(i)
     subprocess.check_call(
         "wget -q -O booklist.{page} "

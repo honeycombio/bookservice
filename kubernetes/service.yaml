@@ -17,6 +17,9 @@ spec:
         ports:
         - containerPort: 8080
         command: ["/go/bin/srv", "--mongo", "bookservice-mongodb"]
+        resources:
+          requests:
+            cpu: "400m"
 
 ---
 apiVersion: v1

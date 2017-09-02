@@ -106,7 +106,6 @@ func ensureIndex(s *mgo.Session) {
 	index := mgo.Index{
 		Key:        []string{"isbn"},
 		Unique:     true,
-		DropDups:   true,
 		Background: true,
 		Sparse:     true,
 	}
@@ -351,7 +350,7 @@ func requestFields(ctx context.Context, r *http.Request, elapsed int64) map[stri
 	return fields
 }
 
-// Middleware: log all requests to the DEBUG log level
+// Middleware: log all requests
 func LogRequest(handler goji.Handler) goji.Handler {
 	return goji.HandlerFunc(func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		before := time.Now()

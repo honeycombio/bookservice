@@ -15,11 +15,15 @@ package main
  */
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
+
+	"github.com/icrowley/fake"
 )
 
 // Book is from the server API
@@ -40,9 +44,16 @@ func main() {
 	flag.Parse()
 	httpClient = &http.Client{}
 	for {
+		getBooks(host, port)
 		isbns := getISBNList(host, port)
-		for _, isbn := range isbns {
+		for i, isbn := range isbns {
 			getBook(host, port, isbn)
+			if i > 20 {
+				break
+			}
+		}
+		if rand.Intn(10) > 2 {
+			addBook(host, port)
 		}
 	}
 }
@@ -75,4 +86,35 @@ func getBook(host string, port int, isbn string) *Book {
 	var b *Book
 	json.Unmarshal(body, b)
 	return b
+}
+
+func getBooks(host string, port int) *Book {
+	resp, err := http.Get(fmt.Sprintf("http://%s:%d/books", host, port))
+	if err != nil {
+		return nil
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil
+	}
+	var b *Book
+	json.Unmarshal(body, b)
+	return b
+}
+
+func addBook(host string, port int) (*http.Response, error) {
+	body, _ := json.Marshal(struct {
+		Authors []string
+		ISBN    string
+		Name    string
+		Price   int
+	}{
+		Authors: []string{fake.FirstName() + " " + fake.LastName()},
+	})
+	return http.Post(
+		fmt.Sprintf("http://%s:%d/books", host, port),
+		"application/json",
+		ioutil.NopCloser(bytes.NewReader(body)),
+	)
 }

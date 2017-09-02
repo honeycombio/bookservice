@@ -11,6 +11,9 @@ spec:
       containers:
       - name: bookservice
         image: emfree/bookservice:latest
-        command: ["python", "prep_books.py", "bookservice-mongodb"]
+        command: ["mongoimport", "--db", "bookservice", "--collection",
+            "books", "--drop", "--file",
+            "/go/src/github.com/honeycombio/bookservice/booklist.json",
+            "--jsonArray", "--host"]
         imagePullPolicy: Always
       restartPolicy: OnFailure

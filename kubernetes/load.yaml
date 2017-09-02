@@ -1,0 +1,22 @@
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: bookservice-client
+spec:
+  replicas: 4
+  template:
+    metadata:
+      labels:
+        app: bookservice
+    spec:
+      containers:
+      - name: bookservice
+        image: emfree/bookservice:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+        - name: VERSION
+          value: "2"
+        command: ["/go/bin/load", "-host", "bookservice"]
