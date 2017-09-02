@@ -11,6 +11,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"golang.org/x/net/context"
@@ -328,17 +329,24 @@ func getISBNs(s *mgo.Session) HandleFunc {
 	}
 }
 
-func requestFields(ctx context.Context, r *http.Request, elapsed int64) map[string]interface{} {
-	remoteAddr := r.Header.Get("X-Forwarded-For")
-	if remoteAddr == "" {
-		remoteAddr = r.RemoteAddr
+func requestFields(ctx context.Context, r *http.Request, w *ResponseWriterProxy, elapsed int64) map[string]interface{} {
+	var remoteAddr string
+	addrPort := strings.Split(r.RemoteAddr, ":")
+	if len(addrPort) > 0 {
+		remoteAddr = addrPort[0]
 	}
 	fields := map[string]interface{}{
-		"method":         r.Method,
-		"request":        r.URL.RequestURI(),
-		"userAgent":      r.UserAgent(),
-		"remoteAddr":     remoteAddr,
-		"request_dur_ms": elapsed,
+		"method":          r.Method,
+		"request":         r.URL.RequestURI(),
+		"userAgent":       r.UserAgent(),
+		"remoteAddr":      remoteAddr,
+		"request_dur_ms":  elapsed,
+		"status_code":     w.Status(),
+		"response_length": w.Length(),
+	}
+
+	for k, v := range r.Header {
+		fields["header_"+k] = v
 	}
 
 	gojiPattern := middleware.Pattern(ctx)
@@ -354,9 +362,38 @@ func requestFields(ctx context.Context, r *http.Request, elapsed int64) map[stri
 func LogRequest(handler goji.Handler) goji.Handler {
 	return goji.HandlerFunc(func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		before := time.Now()
-		handler.ServeHTTPC(ctx, w, r)
+		responseWriter := NewResponseWriterProxy(w)
+		handler.ServeHTTPC(ctx, responseWriter, r)
 		elapsed := time.Now().Sub(before).Nanoseconds() / 1e6
-		logrus.WithFields(requestFields(ctx, r, elapsed)).Info("Handled request")
+		logrus.WithFields(requestFields(ctx, r, responseWriter, elapsed)).Info("Handled request")
 
 	})
+}
+
+type ResponseWriterProxy struct {
+	http.ResponseWriter
+	statusCode int
+	length     int
+}
+
+func NewResponseWriterProxy(inner http.ResponseWriter) *ResponseWriterProxy {
+	return &ResponseWriterProxy{inner, 0, 0}
+}
+func (rw *ResponseWriterProxy) Status() int {
+	return rw.statusCode
+}
+func (rw *ResponseWriterProxy) Length() int {
+	return rw.length
+}
+func (rw *ResponseWriterProxy) Write(bytes []byte) (int, error) {
+	if rw.statusCode == 0 {
+		rw.statusCode = 200
+	}
+	rv, err := rw.ResponseWriter.Write(bytes)
+	rw.length += rv
+	return rv, err
+}
+func (rw *ResponseWriterProxy) WriteHeader(statusCode int) {
+	rw.statusCode = statusCode
+	rw.ResponseWriter.WriteHeader(statusCode)
 }
