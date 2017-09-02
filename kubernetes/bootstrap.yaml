@@ -14,6 +14,6 @@ spec:
         command: ["mongoimport", "--db", "bookservice", "--collection",
             "books", "--drop", "--file",
             "/go/src/github.com/honeycombio/bookservice/booklist.json",
-            "--jsonArray", "--host"]
+            "--jsonArray", "--host", "bookservice-mongodb"]
         imagePullPolicy: Always
       restartPolicy: OnFailure

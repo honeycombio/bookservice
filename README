@@ -1,7 +1,0 @@
-
-Run `python prep_books.py` (or `python prep_books.py <mongo_hostname>`) to load
-data in to mongo.
-
-Build the binaries with `go get ... && go build ...`.
-
-To run this app in a kubernetes cluster, run `kubectl apply -f kubernetes/`

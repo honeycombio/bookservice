@@ -1,9 +1,9 @@
 FROM golang
 
-RUN apt-get install -y python wget
+RUN apt-get update
+RUN apt-get install -y python wget libsasl2-dev
 WORKDIR /go/src/github.com/honeycombio/bookservice
 ADD . /go/src/github.com/honeycombio/bookservice
-RUN go get ./...
 RUN go install ./...
 
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6 && \
