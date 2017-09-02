@@ -2,13 +2,14 @@
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: bookservice-client
+    name: bookservice-deployment-v2
 spec:
-  replicas: 8
+  replicas: 3
   template:
     metadata:
       labels:
         app: bookservice
+        version: "2"
     spec:
       containers:
       - name: bookservice
@@ -19,4 +20,4 @@ spec:
         env:
         - name: VERSION
           value: "2"
-        command: ["/go/bin/load", "-host", "bookservice"]
+        command: ["/go/bin/srv", "--mongo", "bookservice-mongodb"]

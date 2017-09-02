@@ -9,6 +9,7 @@ spec:
     metadata:
       labels:
         app: bookservice
+        version: "2"
     spec:
       containers:
       - name: bookservice
@@ -17,9 +18,6 @@ spec:
         ports:
         - containerPort: 8080
         command: ["/go/bin/srv", "--mongo", "bookservice-mongodb"]
-        resources:
-          requests:
-            cpu: "400m"
 
 ---
 apiVersion: v1
