@@ -1,0 +1,22 @@
+
+language: go
+dist: trusty
+sudo: false
+
+env:
+  global:
+    - TAG=$(git describe --tags --always --dirty)
+
+services:
+ - docker
+
+script:
+ - docker build -t honeycombio/bookservice-demo .
+
+after_success:
+ - if [ "$TRAVIS_BRANCH" == "master" ]; then
+   docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+   docker tag honeycombio/bookservice-demo honeycombio/bookservice-demo:$TAG;
+   docker push honeycombio/logspout-honeycomb;
+   docker push honeycombio/logspout-honeycomb:$TAG;
+   fi
