@@ -8,10 +8,10 @@ spec:
   template:
     metadata:
       labels:
-        app: bookservice
+          app: bookservice-client
     spec:
       containers:
-      - name: bookservice
+      - name: bookservice-client
         image: honeycombio/bookservice-demo:latest
         imagePullPolicy: Always
         ports:

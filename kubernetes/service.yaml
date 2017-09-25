@@ -9,7 +9,7 @@ spec:
     metadata:
       labels:
         app: bookservice
-        version: "2"
+        version: "1"
     spec:
       containers:
       - name: bookservice
@@ -28,7 +28,7 @@ metadata:
     app: bookservice
 spec:
   ports:
-  - name: bookservice
+  - name: http-bookservice  # Port name must start with http for istio injection to work properly
     port: 8080
     targetPort: 8080
   selector:
