@@ -1,3 +1,5 @@
+ARCHIVED: superseded by other example repos
+
 This is a little demo app of a REST-like API serving book info, backed by a
 MongoDB database. Built to illustrate [Honeycomb](https://honeycomb.io/).
 
